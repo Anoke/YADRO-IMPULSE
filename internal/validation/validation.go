@@ -8,14 +8,13 @@ import (
 	"time"
 )
 
+// Regular expression for valid input
 var (
 	timeFormatRegex = regexp.MustCompile(`^\d{2}:\d{2}$`)
 	clientNameRegex = regexp.MustCompile(`^[a-z0-9_-]+$`)
 )
 
-func ReadAndValidateInputFile(line string) ([]string, error) {
-	return nil, nil
-}
+// ParseWorkHours parses working hours from 2nd line of input
 func ParseWorkHours(str string) (time.Time, time.Time, error) {
 	parts := strings.Fields(str)
 	if len(parts) != 2 {
@@ -35,6 +34,7 @@ func ParseWorkHours(str string) (time.Time, time.Time, error) {
 	return startTime, endTime, nil
 }
 
+// ParseTimeFormat parses time format to format "15:04"
 func ParseTimeFormat(str string) (time.Time, error) {
 	if !timeFormatRegex.MatchString(str) {
 		return time.Time{}, fmt.Errorf("invalid format of time")
@@ -42,6 +42,7 @@ func ParseTimeFormat(str string) (time.Time, error) {
 	return time.Parse("15:04", str)
 }
 
+// IsEventStringValid checks for validity of input event
 func IsEventStringValid(str string) error {
 	parts := strings.Fields(str)
 
@@ -57,6 +58,7 @@ func IsEventStringValid(str string) error {
 		return fmt.Errorf(str)
 	}
 
+	// for each event id checks validity
 	switch eventId {
 	case "1":
 		if err := ValidateClient(eventBody); err != nil {
@@ -80,6 +82,7 @@ func IsEventStringValid(str string) error {
 	return nil
 }
 
+// ValidateClient validates client with regular expression
 func ValidateClient(line string) error {
 	if !clientNameRegex.MatchString(line) {
 		return fmt.Errorf(line)
@@ -87,6 +90,7 @@ func ValidateClient(line string) error {
 	return nil
 }
 
+// ValidateClientSitDownMiAmor validate client for 2nd id event, which has extra field table
 func ValidateClientSitDownMiAmor(line string) error {
 	parts := strings.Fields(line)
 

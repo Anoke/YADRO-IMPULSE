@@ -1,10 +1,12 @@
 package client
 
 import (
+	"fmt"
 	"math"
 	"time"
 )
 
+// Client structure of client
 type Client struct {
 	name        string    // Имя клиента
 	table       int       // Номер стола, за которым сидит клиент (0 - если не сидит за столом)
@@ -87,25 +89,34 @@ func (c *Client) SitTable(tableNumber int) {
 }
 
 // LeaveClub frees table at client and calculates its total sum per day
-func (c *Client) LeaveClub(leaveClubTime time.Time, hourlyRate int) int {
-	c.table = 0
-	result := c.CalculateTotalSum(leaveClubTime, hourlyRate)
-	c.isInClub = false
-	return result
+func (c *Client) LeaveClub(leaveClubTime time.Time, hourlyRate int) (int, time.Time) {
+	c.SetTable(0)
+	if leaveClubTime.Before(c.arrivalTime) {
+		return 0, time.Now()
+	}
+	c.SetLeaveTime(leaveClubTime)
+	c.SetIsInClub(false)
+	result, duration := c.CalculateTotalSum(hourlyRate)
+	return result, duration
 }
 
 // CalculateTotalSum calculates total sum
-func (c *Client) CalculateTotalSum(leaveClubTime time.Time, hourlyRate int) int {
-	if leaveClubTime.Before(c.arrivalTime) {
-		return 0
-	}
-	c.SetLeaveTime(leaveClubTime)
-
+func (c *Client) CalculateTotalSum(hourlyRate int) (int, time.Time) {
 	duration := c.leaveTime.Sub(c.arrivalTime)
 
 	hours := math.Ceil(duration.Hours())
 
-	return int(hours) * hourlyRate
+	parsedTime := CalculateSpentTime(duration)
+	return int(hours) * hourlyRate, parsedTime
+}
+
+// CalculateSpentTime calculates total time which spent for one table
+func CalculateSpentTime(duration time.Duration) time.Time {
+	hour := int(duration.Hours())
+	minutes := int(duration.Minutes()) % 60
+	spentTime := fmt.Sprintf("%02d:%02d", hour, minutes)
+	parsedTime, _ := time.Parse("15:04", spentTime)
+	return parsedTime
 }
 
 // NewDay prepares client to new day

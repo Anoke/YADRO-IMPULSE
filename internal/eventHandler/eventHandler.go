@@ -6,52 +6,51 @@ import (
 	"github.com/Anoke/YADRO-IMPULSE/internal/validation"
 	"strconv"
 	"strings"
-	"time"
 )
 
-func HandleEvent(eventTime string, eventId string, eventBody string, club *club.ComputerClub) error {
-	time, _ := validation.ParseTimeFormat(eventTime)
+// HandleEvent handles event for each ID
+func HandleEvent(eventTime string, eventId string, eventBody string, club *club.ComputerClub) {
+	// Adds to buffer event itself
+	event := eventTime + " " + eventId + " " + eventBody
+	club.AddEventToBuffer(event)
+	evTime, _ := validation.ParseTimeFormat(eventTime)
 	var err error
+	// For each event makes its tasks
 	switch eventId {
+	// Event 1 -- client enters club
 	case "1":
 		user, ok := club.FindClient(eventBody)
 		if !ok {
 			user = club.CreateClient(eventBody)
 		}
-		user, err = club.AddClient(user, time)
-		if err != nil {
-			return err
-		}
+		club.AddClient(user, evTime)
+	// Event 2 -- client sits to table
 	case "2":
 		parts := strings.Fields(eventBody)
 		user, ok := club.FindClient(parts[0])
 		if !ok {
-			return fmt.Errorf("ClientUnknown")
+			// Generated outputEvent
+			club.HandleOutputEventId13(evTime, fmt.Errorf("ClientUnknown"))
 		}
-		tableNumber, err2 := strconv.Atoi(parts[1])
-		if err2 != nil {
-			return err2
-		}
-		err = club.AssignTable(user, tableNumber)
-		if err != nil {
-			return err
-		}
+		tableNumber, _ := strconv.Atoi(parts[1])
+		club.AssignTable(user, tableNumber, evTime)
+	// Client who was in club enters queue
 	case "3":
-		err = club.EnqueueClient(eventBody)
+		err = club.EnqueueClient(eventBody, evTime)
 		if err != nil {
-			return err
+			// Handles output event
+			club.HandleOutputEventId13(evTime, err)
 		}
+	// Client leaves club
 	case "4":
+		user, ok := club.FindClient(eventBody)
+		if !ok {
+			// Handles output event
+			club.HandleOutputEventId13(evTime, fmt.Errorf("ClientUnknown"))
+		}
+		err = club.ClientLeaves(user, evTime)
+		if err != nil {
+			club.HandleOutputEventId13(evTime, err)
+		}
 	}
-}
-
-// HandleOutputEventId11 client leaves, also uses in the end of the day
-func HandleOutputEventId11(time2 time.Time) {
-
-}
-func HandleOutputEventId12(time time.Time, err error, tableNumber int) {
-
-}
-func HandleOutputEventId13(time time.Time, err error) {
-
 }
