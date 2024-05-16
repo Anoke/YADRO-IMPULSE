@@ -30,12 +30,12 @@
    ```
    Замените `path_to_your_file` на необходимое значение для вашего файла с входными данными
 
-   Образ практически весит мало, так что можно спокойно собирать
-  ![img.png](img.png)
+   ![img.png](img.png)
+
 3. Запустите контейнер с помощью созданного образа, указав необходимые параметры:
 
    ```bash
-   $ sudo docker run -it --name club-container computer-club-manager:latest
+   docker run -it --name club-container computer-club-manager:latest
    ```
 
 ### Входные данные
